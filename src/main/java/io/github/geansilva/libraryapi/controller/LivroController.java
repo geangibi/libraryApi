@@ -1,18 +1,16 @@
 package io.github.geansilva.libraryapi.controller;
 
 import io.github.geansilva.libraryapi.controller.dto.CadastroLivroDTO;
-import io.github.geansilva.libraryapi.controller.dto.ErroResposta;
+import io.github.geansilva.libraryapi.controller.dto.ResultadoPesquisaLivroDTO;
 import io.github.geansilva.libraryapi.controller.mappers.LivroMapper;
-import io.github.geansilva.libraryapi.exceptions.RegistroDuplicadoException;
 import io.github.geansilva.libraryapi.model.Livro;
 import io.github.geansilva.libraryapi.service.LivroService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("livros")
@@ -24,18 +22,23 @@ public class LivroController implements GenericController {
 
     @PostMapping
     public ResponseEntity<Object> Salvar(@RequestBody @Valid CadastroLivroDTO dto) {
-        try {
+
             Livro livro = mapper.toEntity(dto);
             service.salvar(livro);
-            var url = gerarHeaderLocation(livro.getID());
+            var url = gerarHeaderLocation(livro.getId());
             // retonar codigo created com header location
             return ResponseEntity.created(url).build();
-        } catch(RegistroDuplicadoException e) {
-            var erroDTO = ErroResposta.conflito(e.getMessage());
-            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
 
+    }
 
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<ResultadoPesquisaLivroDTO> obterDetalhes(
+            @PathVariable("id") String id) {
+        return service.obterPorId(UUID.fromString(id))
+                .map(livro -> {
+                    var dto = mapper.toDTO(livro);
+                    return ResponseEntity.ok(dto);
+                }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

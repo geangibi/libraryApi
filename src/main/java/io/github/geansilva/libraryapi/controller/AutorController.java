@@ -31,19 +31,13 @@ public class AutorController implements GenericController {
     private final AutorMapper mapper;
 
     @PostMapping
-    public ResponseEntity<Object> salvar(@RequestBody @Valid AutorDTO dto){ // O request recebe um JSON (@RequestBody) e cria um instancia do tipo Autor DTO
-        try {
-            Autor autor = mapper.toEntity(dto);
-          //  Autor autor = dto.mapearParaAutor(); // Sem Map Structor Com o objeto criado, é possível chamar o metodo mapear para dto que transforma o DTO em um uma instancia da Classe Autor
-            service.salvar(autor); // chama o service passando o autor para salvar os dados
-            URI location = gerarHeaderLocation(autor.getId());
-            return ResponseEntity.created(location).build();
+    public ResponseEntity<Object> salvar(@RequestBody @Valid AutorDTO dto) { // O request recebe um JSON (@RequestBody) e cria um instancia do tipo Autor DTO
 
-        } catch (RegistroDuplicadoException e) {
-            var erroDTO = ErroResposta.conflito(e.getMessage());
-            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
-
-        }
+        Autor autor = mapper.toEntity(dto);
+        //  Autor autor = dto.mapearParaAutor(); // Sem Map Structor Com o objeto criado, é possível chamar o metodo mapear para dto que transforma o DTO em um uma instancia da Classe Autor
+        service.salvar(autor); // chama o service passando o autor para salvar os dados
+        URI location = gerarHeaderLocation(autor.getId());
+        return ResponseEntity.created(location).build();
 
     }
 
@@ -55,7 +49,7 @@ public class AutorController implements GenericController {
                 .map(autor -> { // com os dados do Autor itera sobre o mesmo transformando em Entity em um DTO
                     AutorDTO dto = mapper.toDTO(autor);
                     return ResponseEntity.ok(dto); // Se encontrado retorna ok
-                }).orElseGet(() -> ResponseEntity.notFound().build() ); // caso contrário retorna notfound
+                }).orElseGet(() -> ResponseEntity.notFound().build()); // caso contrário retorna notfound
 
 
        /* if (autorOptional.isPresent()) { forma manual de mapear um Entity para DTO
@@ -73,18 +67,15 @@ public class AutorController implements GenericController {
 
     @DeleteMapping("{id}")
     public ResponseEntity<Object> deletar(@PathVariable("id") String id) {
-        try {
-            var idAutor = UUID.fromString(id);
-            Optional<Autor> autorOptional = service.obterPorId(idAutor);
-            if (autorOptional.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            service.deletar(autorOptional.get());
-            return ResponseEntity.noContent().build();
-        } catch (OperacaoNaoPermitidaException e) {
-            var erroResposta = ErroResposta.respostaPadrao(e.getMessage());
-            return ResponseEntity.status(erroResposta.status()).body(erroResposta);
+
+        var idAutor = UUID.fromString(id);
+        Optional<Autor> autorOptional = service.obterPorId(idAutor);
+        if (autorOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+        service.deletar(autorOptional.get());
+        return ResponseEntity.noContent().build();
+
     }
 
     @GetMapping
@@ -103,28 +94,21 @@ public class AutorController implements GenericController {
     @PutMapping("/{id}")
     public ResponseEntity<Object> atualizarAutores(@PathVariable("id") String id, @RequestBody @Valid AutorDTO dto) {
 
-        try {
         var idAutor = UUID.fromString(id);
         Optional<Autor> autorOptional = service.obterPorId(idAutor);
 
-
-
-            if (autorOptional.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            var autor = autorOptional.get();
-            autor.setNome(dto.nome());
-            autor.setNacionalidade(dto.nacionalidade());
-            autor.setDataNascimento(dto.dataNascimento());
-
-            service.Atualizar(autor);
-
-            return ResponseEntity.noContent().build();
-        } catch (RegistroDuplicadoException e) {
-            var erroDTO = ErroResposta.conflito(e.getMessage());
-            return ResponseEntity.status(erroDTO.status()).body(erroDTO);
-
+        if (autorOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+
+        var autor = autorOptional.get();
+        autor.setNome(dto.nome());
+        autor.setNacionalidade(dto.nacionalidade());
+        autor.setDataNascimento(dto.dataNascimento());
+
+        service.Atualizar(autor);
+
+        return ResponseEntity.noContent().build();
+
     }
 }

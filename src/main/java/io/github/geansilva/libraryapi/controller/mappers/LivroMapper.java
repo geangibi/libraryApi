@@ -1,6 +1,7 @@
 package io.github.geansilva.libraryapi.controller.mappers;
 
 import io.github.geansilva.libraryapi.controller.dto.CadastroLivroDTO;
+import io.github.geansilva.libraryapi.controller.dto.ResultadoPesquisaLivroDTO;
 import io.github.geansilva.libraryapi.model.Livro;
 import io.github.geansilva.libraryapi.repository.AutorRepository;
 import org.mapstruct.Mapper;
@@ -20,7 +21,7 @@ Exemplo:
 
 */
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = AutorMapper.class)
 public abstract class LivroMapper {
 
     @Autowired
@@ -30,4 +31,5 @@ public abstract class LivroMapper {
     public abstract Livro toEntity(CadastroLivroDTO dto);
 
 
+    public abstract ResultadoPesquisaLivroDTO toDTO(Livro livro);
 }
